@@ -75,7 +75,7 @@ public class CreditDestinationWalletStep implements SagaStepInterface {
             log.info("[Saga-Step: Credit] Wallet credited successfully. New balance = {}", wallet.getBalance());
 
             // 6️⃣ Store post-credit balance for next step / audit
-            context.put("toWalletBalanceAfterCredit", wallet.getBalance());
+            context.put("toWalletBalanceAfterCredit", newBalance);
 
             log.info("[Saga-Step: Credit] ✅ Completed credit step for wallet ID {}", toWalletId);
             return true;
@@ -116,7 +116,7 @@ public class CreditDestinationWalletStep implements SagaStepInterface {
             walletRepository.updateBalance(toWalletId, newBalance);
 
             // 4️⃣ Record rollback info for debugging/audit
-            context.put("toWalletBalanceAfterCreditCompensation", wallet.getBalance());
+            context.put("toWalletBalanceAfterCreditCompensation", newBalance);
 
             log.info("[Saga-Compensation: Credit] ✅ Rollback successful. Wallet ID {}, New balance = {}",
                     toWalletId, wallet.getBalance());

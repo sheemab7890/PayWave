@@ -18,11 +18,10 @@ public interface WalletRepository extends JpaRepository<Wallet, Long> {
 
     List<Wallet> findByUserId(Long userId);
 
-//    Optional<Wallet> findByUserId(Long userId);
 
     // This locks the row for other transactions until this one finishes
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT w FROM Wallet w WHERE w.userId = :id")
+    @Query("SELECT w FROM Wallet w WHERE w.id = :id")
     Optional<Wallet> findByIdWithLock(@Param("id") Long id);
 
     @Modifying

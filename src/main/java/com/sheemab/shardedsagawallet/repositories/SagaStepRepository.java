@@ -15,13 +15,13 @@ public interface SagaStepRepository extends JpaRepository<SagaStep, Long> {
 
     List<SagaStep> findBySagaInstanceId(Long sagaInstanceId);
 
-    //List<SagaStep> findBySagaInstanceIdAndStatus(Long sagaInstanceId, StepStatus status);
 
-    @Query("SELECT s FROM SagaStep s WHERE s.sagaInstanceId = :sagaInstanceId AND s.status = StepStatus.COMPLETED")
-    List<SagaStep> findCompletedStepsBySagaInstanceId(@Param("sagaInstanceId") Long sagaInstanceId);
+    @Query("SELECT s FROM SagaStep s WHERE s.sagaInstanceId = :sagaInstanceId AND s.status = :status")
+    List<SagaStep> findCompletedStepsBySagaInstanceId(
+            @Param("sagaInstanceId") Long sagaInstanceId,
+            @Param("status") StepStatus status
+    );
 
-//    @Query("SELECT s FROM SagaStep s WHERE s.sagaInstanceId = :sagaInstanceId AND s.status IN ('COMPLETED', 'COMPENSATED')")
-//    List<SagaStep> findCompletedOrCompensatedStepsBySagaInstanceId(Long sagaInstanceId);
 
     Optional<SagaStep> findBySagaInstanceIdAndStepNameAndStatus(Long sagaInstanceId, String stepName, StepStatus status);
 }

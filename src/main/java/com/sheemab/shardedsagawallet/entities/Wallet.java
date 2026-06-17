@@ -17,17 +17,15 @@ import java.math.BigDecimal;
 public class Wallet {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @Column(name = "user_id", nullable = false, unique = true)
+    private Long userId; // One user can have only one wallet
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
     @Column(name = "balance", nullable = false)
-//    @Builder.Default
     private BigDecimal balance = BigDecimal.ZERO;
 
     public boolean hasSufficientBalance(BigDecimal amount) {
@@ -45,3 +43,5 @@ public class Wallet {
         this.balance = this.balance.add(amount);
     }
 }
+
+// If needed then put @GeneratedValue(strategy = GenerationType.IDENTITY)

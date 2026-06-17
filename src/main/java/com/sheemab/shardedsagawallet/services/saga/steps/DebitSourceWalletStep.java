@@ -62,6 +62,10 @@ public class DebitSourceWalletStep implements SagaStepInterface {
             Wallet wallet = walletRepository.findByIdWithLock(fromWalletId)
                     .orElseThrow(() -> new IllegalStateException("Source wallet not found: ID = " + fromWalletId));
 
+            if (wallet.getBalance().compareTo(amount) < 0) {
+                throw new IllegalStateException("Insufficient balance");
+            }
+
             log.debug("[Saga-Step: Debit] Current balance before debit: {}", wallet.getBalance());
 
             // 3️⃣ Backup original balance for compensation
@@ -76,7 +80,7 @@ public class DebitSourceWalletStep implements SagaStepInterface {
             log.info("[Saga-Step: Debit] ✅ Debit successful. New balance = {}", wallet.getBalance());
 
             // 6️⃣ Record new balance in context for audit or next steps
-            context.put("sourceWalletBalanceAfterDebit", wallet.getBalance());
+            context.put("sourceWalletBalanceAfterDebit", newBalance);
 
             log.info("[Saga-Step: Debit] ✅ Completed debit step for wallet ID {}", fromWalletId);
 
@@ -128,7 +132,7 @@ public class DebitSourceWalletStep implements SagaStepInterface {
             walletRepository.updateBalance(fromWalletId, newBalance);
 
             // 5️⃣ Store new balance after rollback for debugging or audit
-            context.put("sourceWalletBalanceAfterCreditCompensation", wallet.getBalance());
+            context.put("sourceWalletBalanceAfterCreditCompensation", newBalance);
 
             log.info("[Saga-Compensation: Debit] ✅ Rollback successful. Wallet ID {}, New balance = {}",
                     fromWalletId, wallet.getBalance());

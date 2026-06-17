@@ -172,11 +172,11 @@ public class SagaOrchestratorImpl implements SagaOrchestrator{
                 .orElseThrow(() -> new RuntimeException("SagaInstance not found with ID: " + sagaInstanceId));
 
         // Mark the sagaInstance status as COMPENSATING
-        sagaInstance.setStatus(SagaStatus.COMPELSATING);
+        sagaInstance.setStatus(SagaStatus.COMPENSATING);
         sagaInstanceRepository.save(sagaInstance);
 
         // Fetch all the steps with status COMPLETED
-        List<SagaStep> completedSteps = sagaStepRepository.findCompletedStepsBySagaInstanceId(sagaInstanceId);
+        List<SagaStep> completedSteps = sagaStepRepository.findCompletedStepsBySagaInstanceId(sagaInstanceId, StepStatus.COMPLETED);
 
         // Compensate each step
         boolean allCompensated = true;

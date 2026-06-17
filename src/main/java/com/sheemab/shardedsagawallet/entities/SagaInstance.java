@@ -4,8 +4,6 @@ package com.sheemab.shardedsagawallet.entities;
 import com.sheemab.shardedsagawallet.enums.SagaStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-import org.apache.calcite.model.JsonType;
 import lombok.*;
 
 
@@ -19,15 +17,13 @@ import lombok.*;
 public class SagaInstance {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-//    @Builder.Default
     private SagaStatus status = SagaStatus.STARTED;
 
-    @Type(JsonType.class)
+    // just store as plain String
     @Column(name = "context", columnDefinition = "json")
     private String context;
 

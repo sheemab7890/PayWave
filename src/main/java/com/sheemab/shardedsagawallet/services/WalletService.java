@@ -47,8 +47,11 @@ public class WalletService {
     }
 
     public Wallet getWalletByUserId(Long userId) {
-        log.info("Fetching wallet for user ID: {}", userId);
-        return walletRepository.findByUserId(userId).get(0);
+        List<Wallet> wallets = walletRepository.findByUserId(userId);
+        if (wallets.isEmpty()) {
+            throw new RuntimeException("No wallet found for user ID: " + userId);
+        }
+        return wallets.get(0);
     }
 
     public List<Wallet> getWalletsByUserId(Long userId) {
