@@ -64,8 +64,8 @@ rules:
           column: id
           keyGeneratorName: snowflake
 
-      saga_Steps:
-        actualDataNodes: shardwallet${1..2}.saga_Steps
+      saga_steps:
+        actualDataNodes: shardwallet${1..2}.saga_steps
 
         databaseStrategy:
           standard:
@@ -76,8 +76,8 @@ rules:
           column: id
           keyGeneratorName: snowflake
 
-      saga_Instances:
-        actualDataNodes: shardwallet${1..2}.saga_Instances
+      saga_instances:
+        actualDataNodes: shardwallet${1..2}.saga_instances
 
         databaseStrategy:
           standard:
@@ -87,6 +87,10 @@ rules:
         keyGenerateStrategy:
           column: id
           keyGeneratorName: snowflake
+
+      # ✅ Non-sharded table
+      idempotency_records:
+         actualDataNodes: shardwallet1.idempotency_records
 
     # 🧠 Define how data is distributed between databases
     shardingAlgorithms:
@@ -109,7 +113,6 @@ rules:
         type: SNOWFLAKE                      # Snowflake = distributed unique ID generator
           # Combines timestamp + workerId + sequence
         # Ensures unique IDs across multiple shards
-
 
 
 #dataSources:
