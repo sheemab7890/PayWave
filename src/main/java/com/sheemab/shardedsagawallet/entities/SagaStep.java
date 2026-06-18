@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 public class SagaStep {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "saga_instance_id", nullable = false)

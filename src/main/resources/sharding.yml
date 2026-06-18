@@ -1,13 +1,13 @@
-# 🔹 1️⃣ Define all physical data sources (your actual DB connections)
+# 🔹 1️⃣ Define all physical data sources
 dataSources:
-  shardwallet1:                             # 🧱 First physical database (Shard 1)
-    jdbcUrl: jdbc:mysql://localhost:3306/shardwallet1  # Database connection URL
-    username: root                           # DB username
-    password: "@Sheemab786"           # DB password
-    driverClassName: com.mysql.cj.jdbc.Driver          # MySQL driver
-    dataSourceClassName: com.zaxxer.hikari.HikariDataSource  # Use HikariCP pool (fast & reliable)
+  shardwallet1:
+    jdbcUrl: jdbc:mysql://localhost:3306/shardwallet1
+    username: root
+    password: "@Sheemab786"
+    driverClassName: com.mysql.cj.jdbc.Driver
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
 
-  shardwallet2:                             # 🧱 Second physical database (Shard 2)
+  shardwallet2:
     jdbcUrl: jdbc:mysql://localhost:3306/shardwallet2
     username: root
     password: "@Sheemab786"
@@ -16,104 +16,84 @@ dataSources:
 
 # 🔹 2️⃣ Define all sharding rules
 rules:
-  - !SHARDING                                # Tell ShardingSphere this rule is for database sharding
+  - !SHARDING
 
-    # 🧩 Default rule if no table-specific rule matches
     defaultDatabaseStrategy:
       standard:
-        shardingColumn: id                   # Field used to decide which shard the data goes to
-        shardingAlgorithmName: db-inline     # Use algorithm named "db-inline" (defined below)
+        shardingColumn: id
+        shardingAlgorithmName: db-inline
 
-    # 🧾 Table-specific sharding rule
     tables:
-      users:                                 # Logical table name (used in code)
-        actualDataNodes: shardwallet${1..2}.users  # Physical tables exist in both DBs: shardwallet1.users & shardwallet2.users
-
-        # 🧮 Strategy for selecting the target database
-        databaseStrategy:
-          standard:
-            shardingColumn: id               # Use 'id' to decide shard
-            shardingAlgorithmName: db-inline # Apply the algorithm below (id % 2 + 1)
-
-        # 🔑 Auto primary key generator config
-        keyGenerateStrategy:
-          column: id                         # Generate value for column 'id'
-          keyGeneratorName: snowflake        # Use globally unique Snowflake ID
-
-      wallets:
-        actualDataNodes: shardwallet${1..2}.wallets
-
-        databaseStrategy:
-          standard:
-            shardingColumn: user_id
-            shardingAlgorithmName: db-inline-user-id
-
-        keyGenerateStrategy:
-          column: id
-          keyGeneratorName: snowflake
-
-      transaction:
-        actualDataNodes: shardwallet${1..2}.transaction
-
+      users:
+        actualDataNodes: shardwallet${1..2}.users
         databaseStrategy:
           standard:
             shardingColumn: id
             shardingAlgorithmName: db-inline
+        keyGenerateStrategy:
+          column: id
+          keyGeneratorName: snowflake
 
+      wallets:
+        actualDataNodes: shardwallet${1..2}.wallets
+        databaseStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: db-inline-user-id
+        keyGenerateStrategy:
+          column: id
+          keyGeneratorName: snowflake
+
+      transactions:
+        actualDataNodes: shardwallet${1..2}.transactions
+        databaseStrategy:
+          standard:
+            shardingColumn: id
+            shardingAlgorithmName: db-inline
         keyGenerateStrategy:
           column: id
           keyGeneratorName: snowflake
 
       saga_steps:
         actualDataNodes: shardwallet${1..2}.saga_steps
-
         databaseStrategy:
           standard:
             shardingColumn: id
             shardingAlgorithmName: db-inline
-
         keyGenerateStrategy:
           column: id
           keyGeneratorName: snowflake
 
       saga_instances:
         actualDataNodes: shardwallet${1..2}.saga_instances
-
         databaseStrategy:
           standard:
             shardingColumn: id
             shardingAlgorithmName: db-inline
-
         keyGenerateStrategy:
           column: id
           keyGeneratorName: snowflake
 
-      # ✅ Non-sharded table
       idempotency_records:
-         actualDataNodes: shardwallet1.idempotency_records
+        actualDataNodes: shardwallet1.idempotency_records
 
-    # 🧠 Define how data is distributed between databases
     shardingAlgorithms:
       db-inline:
-        type: INLINE                         # Inline = simple expression-based sharding rule
+        type: INLINE
         props:
-          algorithm-expression: shardwallet${id % 2 + 1} # Formula to pick DB:
-            # → If id=1 → 1%2+1=2 → shardwallet2
-            # → If id=2 → 2%2+1=1 → shardwallet1
-          # → Alternates between DB1 & DB2
+          algorithm-expression: shardwallet${Math.abs(id.hashCode()) % 2 + 1}
 
       db-inline-user-id:
         type: INLINE
         props:
-          algorithm-expression: shardwallet${user_id % 2 + 1}
+          algorithm-expression: shardwallet${Math.abs(user_id.hashCode()) % 2 + 1}
 
-    # 🌨️ Define ID generation algorithm
     keyGenerators:
       snowflake:
-        type: SNOWFLAKE                      # Snowflake = distributed unique ID generator
-          # Combines timestamp + workerId + sequence
-        # Ensures unique IDs across multiple shards
+        type: SNOWFLAKE
 
+props:
+  sql-show: true
 
 #dataSources:
 #  shardwallet1:

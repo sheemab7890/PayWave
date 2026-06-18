@@ -37,8 +37,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints — token ki zaroorat nahi
                         .requestMatchers(
-                                "/auth/register",
-                                "/auth/login",
+                                "/auth/**",
                                 "/swagger-ui/**",    // Swagger docs
                                 "/v3/api-docs/**"    // OpenAPI spec
                         ).permitAll()

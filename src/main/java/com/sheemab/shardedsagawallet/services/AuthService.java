@@ -13,6 +13,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +26,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final WalletService walletService;
 
+    @Transactional
     public UserResponseDto createUser(UserRequestDto userDto){
 
         // Email duplicate check
@@ -42,21 +44,22 @@ public class AuthService {
 
         User savedUser = userRepository.save(newUser);
 
-       Wallet userWallet = walletService.creatdWallet(savedUser.getId()); // Create wallet for the saved user
+       Wallet userWallet = walletService.createWallet(savedUser.getId()); // Create wallet for the saved user
 
-        log.info("User created with ID {} in database shardwallet {} ", savedUser.getId(), (savedUser.getId() % 2 + 1));
+
+        log.info("User created with ID {} in database shardwallet {} ",
+                savedUser.getId(),
+                (Math.abs(savedUser.getId().hashCode()) % 2 + 1));
+
         log.info("Wallet created for user {} with balance ₹0", savedUser.getId());
 
-         UserResponseDto finalUser = UserResponseDto.builder()
+         return UserResponseDto.builder()
                  .id(savedUser.getId())
                  .name(savedUser.getName())
                  .email(savedUser.getEmail())
                  .balance(userWallet.getBalance())
                  .build();
 
-         log.info("User {} created successfully", finalUser.getName());
-
-         return finalUser;
     }
 
 

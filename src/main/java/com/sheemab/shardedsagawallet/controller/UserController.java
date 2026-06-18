@@ -19,11 +19,11 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping(path = "/create")
-    public ResponseEntity<User> createUser(@RequestBody UserRequestDto userDto) {
-        User newUser = userService.createUser(userDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
-    }
+//    @PostMapping(path = "/create")
+//    public ResponseEntity<User> createUser(@RequestBody UserRequestDto userDto) {
+//        User newUser = userService.createUser(userDto);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
+//    }
 
     @GetMapping(path = "/id/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
