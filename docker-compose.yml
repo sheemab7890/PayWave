@@ -1,90 +1,251 @@
-version: '3.8'
-
 services:
 
-  # ─────────────────────────────────────────
-  # Shard 1 — shardwallet1 database
-  # ─────────────────────────────────────────
-  mysql-shard-1:
-    image: mysql:8
-    container_name: mysql-shard-1
-    restart: always
+  mysql:
+    image: mysql:8.4
+    container_name: mysql
+
+    restart: unless-stopped
+
+    command:
+      - --innodb-buffer-pool-size=64M
+      - --max-connections=30
+
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: shardwallet1
+
     volumes:
-      - shard1_data:/var/lib/mysql
-#    ports:
-#      - "3306:3306"
-    networks:
-      - paywave-net
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
     healthcheck:
-      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_ROOT_PASSWORD mysqladmin ping -h localhost -u root"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 20
+      start_period: 60s
 
-  # ─────────────────────────────────────────
-  # Shard 2 — shardwallet2 database
-  # ─────────────────────────────────────────
-  mysql-shard-2:
-    image: mysql:8
-    container_name: mysql-shard-2
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: shardwallet2
-    volumes:
-      - shard2_data:/var/lib/mysql
-#    ports:
-#      - "3307:3306"
     networks:
       - paywave-net
-    healthcheck:
-      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_ROOT_PASSWORD mysqladmin ping -h localhost -u root"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
 
-  # ─────────────────────────────────────────
-  # Spring Boot App — shardedsagawallet
-  # ─────────────────────────────────────────
   app:
     image: sheemab7890/paywave:latest
     container_name: paywave-app
-    restart: always
+
+    restart: unless-stopped
+
     depends_on:
-      mysql-shard-1:
-        condition: service_healthy
-      mysql-shard-2:
-        condition: service_healthy
+      - mysql
+
     environment:
-      # These are injected into the container as OS env vars
-      # sharding.yml reads them via ${SHARD1_HOST}, ${SHARD2_HOST} etc.
-      SHARD1_HOST: mysql-shard-1
+      SHARD1_HOST: mysql
       SHARD1_PORT: 3306
-      SHARD2_HOST: mysql-shard-2
+
+      SHARD2_HOST: mysql
       SHARD2_PORT: 3306
+
       SHARD_USERNAME: root
       SHARD_PASSWORD: ${MYSQL_ROOT_PASSWORD}
 
-      # JWT — reads from .env
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: 86400000
 
-      # JVM memory limits (important for small EC2 instances)
-      JAVA_TOOL_OPTIONS: "-Xms256m -Xmx512m"
+      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx256m"
+
     ports:
       - "8080:8080"
+
     networks:
       - paywave-net
 
 networks:
   paywave-net:
-    driver: bridge
 
 volumes:
-  shard1_data:
-  shard2_data:
+  mysql_data:
+
+
+#services:
+#
+#  # -----------------------------
+#  # MySQL Shard 1
+#  # -----------------------------
+#  mysql-shard-1:
+#    image: mysql:8.4
+#    container_name: mysql-shard-1
+#    restart: unless-stopped
+#
+#    command:
+#      - --innodb-buffer-pool-size=64M
+#      - --max-connections=30
+#
+#    environment:
+#      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+#      MYSQL_DATABASE: shardwallet1
+#    volumes:
+#      - shard1_data:/var/lib/mysql
+#    networks:
+#      - paywave-net
+#    healthcheck:
+#      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent || exit 1"]
+#      interval: 10s
+#      timeout: 10s
+#      retries: 20
+#      start_period: 60s
+#
+#  # -----------------------------
+#  # MySQL Shard 2
+#  # -----------------------------
+#  mysql-shard-2:
+#    image: mysql:8.4
+#    container_name: mysql-shard-2
+#    restart: unless-stopped
+#
+#    command:
+#      - --innodb-buffer-pool-size=64M
+#      - --max-connections=30
+#
+#    environment:
+#      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+#      MYSQL_DATABASE: shardwallet2
+#    volumes:
+#      - shard2_data:/var/lib/mysql
+#    networks:
+#      - paywave-net
+#    healthcheck:
+#      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent || exit 1"]
+#      interval: 10s
+#      timeout: 10s
+#      retries: 20
+#      start_period: 60s
+#
+#  # -----------------------------
+#  # Spring Boot Application
+#  # -----------------------------
+#  app:
+#    image: sheemab7890/paywave:latest
+#    container_name: paywave-app
+#    restart: unless-stopped
+#
+#    depends_on:
+#      - mysql-shard-1
+#      - mysql-shard-2
+#
+#    environment:
+#      SHARD1_HOST: mysql-shard-1
+#      SHARD1_PORT: 3306
+#      SHARD2_HOST: mysql-shard-2
+#      SHARD2_PORT: 3306
+#      SHARD_USERNAME: root
+#      SHARD_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+#
+#      JWT_SECRET: ${JWT_SECRET}
+#      JWT_EXPIRATION: 86400000
+#
+#      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx256m"
+#
+#    ports:
+#      - "8080:8080"
+#
+#    networks:
+#      - paywave-net
+#
+#networks:
+#  paywave-net:
+#    driver: bridge
+#
+#volumes:
+#  shard1_data:
+#  shard2_data:
+
+
+
+#version: '3.8'
+#
+#services:
+#
+#  # ─────────────────────────────────────────
+#  # Shard 1 — shardwallet1 database
+#  # ─────────────────────────────────────────
+#  mysql-shard-1:
+#    image: mysql:8
+#    container_name: mysql-shard-1
+#    restart: always
+#    environment:
+#      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+#      MYSQL_DATABASE: shardwallet1
+#    volumes:
+#      - shard1_data:/var/lib/mysql
+##    ports:
+##      - "3306:3306"
+#    networks:
+#      - paywave-net
+#    healthcheck:
+#      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_ROOT_PASSWORD mysqladmin ping -h localhost -u root"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 10
+#      start_period: 30s
+#
+#  # ─────────────────────────────────────────
+#  # Shard 2 — shardwallet2 database
+#  # ─────────────────────────────────────────
+#  mysql-shard-2:
+#    image: mysql:8
+#    container_name: mysql-shard-2
+#    restart: always
+#    environment:
+#      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+#      MYSQL_DATABASE: shardwallet2
+#    volumes:
+#      - shard2_data:/var/lib/mysql
+##    ports:
+##      - "3307:3306"
+#    networks:
+#      - paywave-net
+#    healthcheck:
+#      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_ROOT_PASSWORD mysqladmin ping -h localhost -u root"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 10
+#      start_period: 30s
+#
+#  # ─────────────────────────────────────────
+#  # Spring Boot App — shardedsagawallet
+#  # ─────────────────────────────────────────
+#  app:
+#    image: sheemab7890/paywave:latest
+#    container_name: paywave-app
+#    restart: always
+#    depends_on:
+#      mysql-shard-1:
+#        condition: service_healthy
+#      mysql-shard-2:
+#        condition: service_healthy
+#    environment:
+#      # These are injected into the container as OS env vars
+#      # sharding.yml reads them via ${SHARD1_HOST}, ${SHARD2_HOST} etc.
+#      SHARD1_HOST: mysql-shard-1
+#      SHARD1_PORT: 3306
+#      SHARD2_HOST: mysql-shard-2
+#      SHARD2_PORT: 3306
+#      SHARD_USERNAME: root
+#      SHARD_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+#
+#      # JWT — reads from .env
+#      JWT_SECRET: ${JWT_SECRET}
+#      JWT_EXPIRATION: 86400000
+#
+#      # JVM memory limits (important for small EC2 instances)
+#      JAVA_TOOL_OPTIONS: "-Xms128m -Xmx256m"
+#    ports:
+#      - "8080:8080"
+#    networks:
+#      - paywave-net
+#
+#networks:
+#  paywave-net:
+#    driver: bridge
+#
+#volumes:
+#  shard1_data:
+#  shard2_data:

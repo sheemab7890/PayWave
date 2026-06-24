@@ -13,14 +13,14 @@ dataSources:
   shardwallet1:
     dataSourceClassName: com.zaxxer.hikari.HikariDataSource
     driverClassName: com.mysql.cj.jdbc.Driver
-    jdbcUrl: jdbc:mysql://mysql-shard-1:3306/shardwallet1?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    jdbcUrl: jdbc:mysql://mysql:3306/shardwallet1?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: root
     password: "@Sheemab786"
 
   shardwallet2:
     dataSourceClassName: com.zaxxer.hikari.HikariDataSource
     driverClassName: com.mysql.cj.jdbc.Driver
-    jdbcUrl: jdbc:mysql://mysql-shard-2:3306/shardwallet2?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    jdbcUrl: jdbc:mysql://mysql:3306/shardwallet2?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: root
     password: "@Sheemab786"
 
