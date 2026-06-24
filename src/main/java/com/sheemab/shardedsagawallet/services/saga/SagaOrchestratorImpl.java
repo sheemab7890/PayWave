@@ -37,7 +37,7 @@ public class SagaOrchestratorImpl implements SagaOrchestrator{
                     .status(SagaStatus.STARTED)
                     .build();
 
-            sagaInstanceRepository.save(sagaInstance);
+           sagaInstance = sagaInstanceRepository.save(sagaInstance);
 
             log.info("Started new saga with ID: {}", sagaInstance.getId());
 

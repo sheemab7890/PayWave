@@ -15,14 +15,14 @@ dataSources:
     driverClassName: com.mysql.cj.jdbc.Driver
     jdbcUrl: jdbc:mysql://mysql-shard-1:3306/shardwallet1?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: root
-    password: "@Sheemab786"
+    password: ${SHARD_PASSWORD}
 
   shardwallet2:
     dataSourceClassName: com.zaxxer.hikari.HikariDataSource
     driverClassName: com.mysql.cj.jdbc.Driver
     jdbcUrl: jdbc:mysql://mysql-shard-2:3306/shardwallet2?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: root
-    password: "@Sheemab786"
+    password: ${SHARD_PASSWORD}
 
 # 🔹 2️⃣ Sharding rules
 rules:
